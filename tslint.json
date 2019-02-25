@@ -1,0 +1,21 @@
+{
+  "defaultSeverity": "error",
+  "lintOptions": {
+    "typeCheck": true
+  },
+  "extends": ["tslint:recommended","tslint-sonarts"],
+  "jsRules": {},
+  "rules": {
+    "no-console": [false, "log"],
+    "object-literal-sort-keys": false,
+    "no-unused-expression": false,
+    "semicolon": [true, "never"],
+    "prefer-immediate-return": false // 
+  },
+  "rulesDirectory": [],
+  "linterOptions": {
+    "exclude": [
+      "test/**/*.json"
+    ]
+  }
+}
