@@ -16,10 +16,7 @@ highlightTheme: "monokai"
 
 stories are for humans
 
-NOTE: 
-dev
-ops
-devops
+logs are for computers, stop writing stories
 
 ---
 
@@ -31,6 +28,14 @@ devops
 <img src="./black-white-box.png" alt="log">
 
 <small>https://medium.com/@copyconstruct/logs-and-metrics-6d34d3026e38</small>
+
+NOTE:
+
+metrics are low-fidelity (aggreated)
+
+logs are high-fidelity (detailed)
+
+questions of your system will start with logs, and promote to metrics
 
 ---
 
@@ -307,7 +312,13 @@ writing sagas
 
 #### Start 👌
 emitting events  
-doing ops
+doing ops  
+
+NOTE:  
+
+you won't get it right the first time
+
+iterate: do dev, do ops, do devops
 
 --
 
