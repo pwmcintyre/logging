@@ -113,3 +113,18 @@ eg. "Customer Name" vs "Customer ID"
 Typically:
 - database contain business data
 - logs contain reference to business data; and how it got there
+
+## In practice (opinion)
+
+![classic setup](./img/plumbing.png)
+
+Code falls into 2 flavours:
+1. Business Logic
+2. Plumbing
+
+As such: only your service layer should log as "INFO"
+
+### Examples
+
+### Observer pattern
+
