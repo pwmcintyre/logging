@@ -7,36 +7,12 @@ highlightTheme: "monokai"
 
 TL;DR; nobody "reads" a log; instead we use tools to parse and filter; consider changing your strategy:
 
-- ✅ : emit discrete events with context
-- ❌ : write stories
+- DO : emit discreet, context-rich events
+- DO NOT : write stories over many lines
 
 ---
 
-## Context: Where do logs fit?
-
-Logs are the easiest way to level-up your observability. Why?
-1. ease of emission (tooling)
-2. both metrics and traces can be built *from* logs
-
----
-
-### Pillars of Observability
-
-Whitebox:
-- 👉 Log 👈
-- Metric
-- Trace
-
-Blackbox:
-- poll (eg. ping)
-
-### Refs:
-- https://www.oreilly.com/library/view/distributed-systems-observability/9781492033431/ch04.html
-- https://medium.com/@copyconstruct/logs-and-metrics-6d34d3026e38
-
----
-
-## What is a Log?
+## WHAT is a log?
 
 > the stream of aggregated, time-ordered events ... one event per line ...
 
@@ -75,6 +51,32 @@ Danger zone: Take care with sensitive data!
 - __info__ — a core function happened 👈 **_events!_**
 - __debug__ — for SME to troubleshoot process flow
 
+---
+
+## WHERE do logs fit?
+
+Logs are the easiest way to level-up your observability. Why?
+1. ease of emission (tooling)
+2. both metrics and traces can be built *from* logs
+
+---
+
+### Pillars of Observability
+
+Whitebox:
+- 👉 Log 👈
+- Metric
+- Trace
+
+Blackbox:
+- poll (eg. ping)
+
+### Refs:
+- https://www.oreilly.com/library/view/distributed-systems-observability/9781492033431/ch04.html
+- https://medium.com/@copyconstruct/logs-and-metrics-6d34d3026e38
+
+---
+
 ### Structure
 
 - time
@@ -95,6 +97,9 @@ Eg. "completed request" or "failed to complete request"
 
 ### Context (nouns)
 
+Logs allow high-cardinality values.
+
+You cannot predict future-questions — be generous.
 
 
 #### Sensitive Context
