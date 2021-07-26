@@ -1,18 +1,15 @@
 ---
 theme : "night"
+# customTheme : "theme"
 highlightTheme: "monokai"
+viewDistance: 0.1
 ---
 
 # Logging
 
-TL;DR; nobody "reads" a log; instead we use tools to parse and filter; consider changing your strategy:
-
-- DO : emit discreet, context-rich events
-- DO NOT : write stories over many lines
-
 ---
 
-## WHAT is a log?
+## What is a log?
 
 > the stream of aggregated, time-ordered events ... one event per line ...
 
@@ -21,6 +18,36 @@ TL;DR; nobody "reads" a log; instead we use tools to parse and filter; consider 
 ---
 
 ### Levels
+
+A broad category which is important to collectively agree on.
+
+---
+
+#### Mistake 1: "ERROR-ish"
+
+Using "ERROR" for "error-like" events — eg:
+
+_"user failed to authenticate"_
+
+401 — a client error!
+
+This belongs in the response to the client; not in logs.
+
+---
+
+#### Mistake 2: "INFO"
+
+Using "INFO" too liberally — eg:
+
+_"about to execute SQL statement: SELECT ..."_
+
+This is almost never useful; it's a prediction about a very low-level plumbing detail.
+
+This is "DEBUG"
+
+---
+
+#### Level Definitions
 
 - __fatal__  
 The system cannot continue and cannot proceed.  
@@ -55,10 +82,6 @@ Danger zone: Take care with sensitive data!
 
 ## WHERE do logs fit?
 
-Logs are the easiest way to level-up your observability. Why?
-1. ease of emission (tooling)
-2. both metrics and traces can be built *from* logs
-
 ---
 
 ### Pillars of Observability
@@ -74,6 +97,12 @@ Blackbox:
 ### Refs:
 - https://www.oreilly.com/library/view/distributed-systems-observability/9781492033431/ch04.html
 - https://medium.com/@copyconstruct/logs-and-metrics-6d34d3026e38
+
+---
+
+Logs are the easiest way to level-up your observability. Why?
+1. ease of emission (tooling)
+2. both metrics and traces can be built *from* logs
 
 ---
 
@@ -128,3 +157,11 @@ As such: only your service layer should log as "INFO"
 
 ### Observer pattern
 
+
+
+---
+
+## TL;DR;
+
+- DONT : write stories over many lines
+- DO : emit discreet, context-rich events
