@@ -20,8 +20,38 @@ func Handle(ctx context.Context, event events.APIGatewayProxyRequest) error {
 
 	ctx = appcontext.WithCorrelationID(ctx, appcontext.CorrelationID(event.Headers["X-Correlation-Id"]))
 
+	// logger pacakge which harvests `context.Context`
 	logger.WithContext(ctx).Info("foo")
 
 	return nil
+
+}
+
+type Observer interface {
+	didThing()
+}
+
+type service struct {
+	observer Observer
+}
+
+func (s *server) thing() {
+
+	// do thing
+
+	// log
+	logger.log("did thing")
+	metrics.emit(1, "thing")
+
+}
+
+func (s *server) thing() {
+
+	// log
+	s.observer.doThing(func() {
+		//do thing
+	})
+
+	lambda.Handle(datadog.Trace(handler))
 
 }

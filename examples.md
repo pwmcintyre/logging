@@ -1,12 +1,24 @@
+---
+theme : "night"
+highlightTheme: "monokai"
+---
+
 # Example
 
-```
-2021-07-25T04:12:50Z authorized
+---
+
+## Classic
+
+```text
+2021-07-25T04:12:50Z INFO handling request
+2021-07-25T04:12:50Z INFO handling request
+2021-07-25T04:12:50Z INFO authorizing "123"
+2021-07-25T04:12:50Z INFO authorizing "543"
+2021-07-25T04:12:51Z INFO authorized
+2021-07-25T04:12:52Z INFO unauthorized
 ```
 
-1. No context
-2. No correlation (time is not robust!)
-3. No structure
+---
 
 ## Structure
 
@@ -18,6 +30,8 @@
 ```
 
 Structure means we can parse it with a broad range of tools.
+
+---
 
 ## User context
 
@@ -33,6 +47,8 @@ Context means why can ask more interesting questions.
 
 _"how frequently does this ID authenticate with success?"_
 
+---
+
 ## User state
 
 ```json
@@ -45,6 +61,8 @@ _"how frequently does this ID authenticate with success?"_
 ```
 
 Ephemeral state is particularly hard to troubleshoot.
+
+---
 
 ## System context
 
@@ -62,6 +80,8 @@ System context means we know what emitting this; and which version.
 
 _"when did this start failing? is this a bug with v3?"_
 
+---
+
 ## System state
 
 ```json
@@ -76,6 +96,8 @@ _"when did this start failing? is this a bug with v3?"_
 ```
 
 System state is often ephemeral; in-memory only; perilous.
+
+---
 
 ## System tracing
 
@@ -92,6 +114,8 @@ System state is often ephemeral; in-memory only; perilous.
 ```
 
 A complex system may emit many events; a request ID brings lineage.
+
+---
 
 ## Distributed tracing
 

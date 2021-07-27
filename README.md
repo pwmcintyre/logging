@@ -50,7 +50,7 @@ A broad category which is important to <span style="text-decoration:underline">c
 #### non-ERROR
 <!-- .slide: data-background="#A62E2E" -->
 
-> ERROR: failed to authenticate
+> ERROR: client is not authorized
 
 401 — a client error!
 
@@ -190,3 +190,21 @@ As such: only your service layer should log as "INFO"
 
 - DONT : write stories over many lines
 - DO : emit discreet, context-rich events
+
+---
+
+misc
+
+- you'll get it wrong the first time; iterate
+- single respo: dont log and throw
+
+
+client_id vs id
+
+
+correlation
+
+
+
+drill: concensus
+
