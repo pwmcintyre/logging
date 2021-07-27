@@ -16,6 +16,7 @@ highlightTheme: "monokai"
 ---
 
 ## Where do logs fit?
+<!-- .slide: data-background="#468EAE" -->
 
 Pillars of Observability
 
@@ -24,15 +25,88 @@ Pillars of Observability
 - Trace
 
 <aside class="notes">
-
-Logs are the easiest way to level-up your observability. Why?
-1. ease of emission (tooling)
-2. both metrics and traces can be built *from* logs
-
 Reference:
 - https://www.oreilly.com/library/view/distributed-systems-observability/9781492033431/ch04.html
 - https://medium.com/@copyconstruct/logs-and-metrics-6d34d3026e38
 </aside>
+
+---
+
+### Reality Check: metrics
+<!-- .slide: data-background="#468EAE" -->
+
+Metrics is low-fidelity event aggregates
+
+Tells you IF failure; but not WHY failure
+
+<aside class="notes">
+1. take all your events
+2. throw away high-fidelity context (eg. user ID's)
+3. store just the number of events
+</aside>
+
+---
+
+### Reality Check: tracing
+<!-- .slide: data-background="#468EAE" -->
+
+Tracing is logging with opinion + tooling
+
+You can DIY or SaaS:
+- AWS X-Ray
+- DataDog APM
+- honeycomb.io
+
+---
+
+## Logging Examples
+
+See ./examples.md
+
+---
+
+## Context
+
+you cannot predict future questions: be generous
+
+<aside class="notes">
+... but consider data sensitivity
+</aside>
+
+---
+
+### Context Identifiers
+
+👉 ***Concensus*** 👈
+
+☝
+
+```text
+correlation_id / request_id / user_id / asset_id / ...
+```
+
+---
+
+### Context Dense
+
+Log infrequently; with rich context
+
+---
+
+### Common Mistakes
+
+---
+
+#### Log-and-Throw
+
+From low-level systems
+
+```go
+log.Error("failed")
+return err
+```
+
+Breach of "Single-responsibility principle"
 
 ---
 
@@ -131,45 +205,6 @@ __Danger zone:__ Take care with sensitive data!
 
 ---
 
-## Structure
-
----
-
-### Examples
-
----
-
-#### Message (verbs)
-
-Should uniquely identity an activity.  
-Don't be tempted to overload this with context.
-
-Eg. "completed request" or "failed to complete request"
-
----
-
-### Context (nouns)
-
-Logs allow high-cardinality values.
-
-You cannot predict future-questions — be generous.
-
----
-
-#### Sensitive Context
-
-You need to decide what to log — consider:
-
-"Business" data vs "Technical" data
-
-eg. "Customer Name" vs "Customer ID"
-
-Typically:
-- database contain business data
-- logs contain reference to business data; and how it got there
-
----
-
 ## In practice (opinion)
 
 ![classic setup](./img/plumbing.png)
@@ -197,14 +232,3 @@ misc
 
 - you'll get it wrong the first time; iterate
 - single respo: dont log and throw
-
-
-client_id vs id
-
-
-correlation
-
-
-
-drill: concensus
-
