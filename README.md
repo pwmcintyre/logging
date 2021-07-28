@@ -55,12 +55,13 @@ You can DIY or SaaS:
 
 ## Context
 
-Logs impose no limits on size* / cardinality
+You cannot predict future questions  
+— be generous
 
-You cannot predict future questions — be generous
+<small>Logs impose no limits on size* / cardinality</small>
 
 <aside class="notes">
-... but consider data sensitivity
+... consider data sensitivity; probably don't dump blobs
 </aside>
 
 ---
@@ -71,7 +72,7 @@ You cannot predict future questions — be generous
 
 --
 
-#### Example — serial architecture
+#### Example — pipe architecture
 <!-- .slide: data-background="#33a" -->
 
 ```text
@@ -79,6 +80,8 @@ queue service > validator service > sender service
 ```
 
 Q: who should log?
+
+<small>new problem; how to pass context + correlation?</small>
 
 --
 
@@ -95,6 +98,8 @@ controller > log
 Q: who should log?
 
 A: The controller
+
+<small>everything else performs a discrete function</small>
 
 --
 
@@ -176,6 +181,8 @@ Code falls into 2 flavours:
 <!-- .slide: data-background="#33a" -->
 
 `./go/service/main.go`
+
+<small>treat logs as an event emitting dependancy</small>
 
 ---
 

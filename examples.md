@@ -22,7 +22,7 @@ $100B industry to handle this! 💸🔥
 
 ---
 
-## Structure
+## + Structure
 
 ```json
 {
@@ -35,7 +35,7 @@ Structure means we can parse it with a broad range of tools.
 
 ---
 
-## User context
+## + User context
 
 ```json
 {
@@ -51,7 +51,7 @@ _"how frequently does this ID authenticate with success?"_
 
 ---
 
-## User state
+## + User state
 
 ```json
 {
@@ -66,7 +66,7 @@ Ephemeral state is particularly hard to troubleshoot.
 
 ---
 
-## System context
+## + System context
 
 ```json
 {
@@ -84,7 +84,7 @@ _"when did this start failing? is this a bug with v3?"_
 
 ---
 
-## System state
+## + System state
 
 ```json
 {
@@ -101,7 +101,7 @@ System state is often ephemeral; in-memory only; perilous.
 
 ---
 
-## System tracing
+## + System tracing
 
 ```json
 {
@@ -119,7 +119,7 @@ A complex system may emit many events; a request ID brings lineage.
 
 ---
 
-## Distributed tracing
+## + Distributed tracing
 
 ```json
 {
