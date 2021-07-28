@@ -7,7 +7,7 @@ highlightTheme: "monokai"
 
 ---
 
-## Classic
+## Machine Exhaust
 
 ```text
 2021-07-25T04:12:50Z INFO handling request
@@ -17,6 +17,8 @@ highlightTheme: "monokai"
 2021-07-25T04:12:51Z INFO authorized
 2021-07-25T04:12:52Z INFO unauthorized
 ```
+
+$100B industry to handle this! 💸🔥
 
 ---
 

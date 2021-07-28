@@ -31,11 +31,13 @@ type ThingPutter interface {
 
 var ErrSystem = errors.New("system error")
 var ErrClient = errors.New("client error")
+var ErrClientUnauthorized = errors.Wrap(ErrClient, "unauthorized")
 
 type SaveThingRequest struct {
 	Thing Thing
 }
 
+// ThingService
 type ThingService struct {
 	auth  Authorizer
 	store ThingPutter
@@ -53,7 +55,7 @@ func (s *ThingService) SaveThing(ctx context.Context, r SaveThingRequest) error 
 		return ErrSystem
 	}
 	if !ok {
-		return errors.Wrap(ErrClient, "unauthorized")
+		return ErrClientUnauthorized
 	}
 
 	// save
@@ -75,17 +77,18 @@ func (s *ThingService) SaveThing(ctx context.Context, r SaveThingRequest) error 
 
 }
 
+// ThingServiceWithObserver
+type ThingServiceWithObserver struct {
+	auth    Authorizer
+	store   ThingPutter
+	observe Observer
+}
+
 type Observer interface {
 	AuthError(ctx context.Context, r SaveThingRequest, err error)
 	Unauthorized(ctx context.Context, r SaveThingRequest)
 	SaveError(ctx context.Context, r SaveThingRequest, err error)
 	Save(ctx context.Context, r SaveThingRequest)
-}
-
-type ThingServiceWithObserver struct {
-	auth    Authorizer
-	store   ThingPutter
-	observe Observer
 }
 
 func (s *ThingServiceWithObserver) SaveThing(ctx context.Context, r SaveThingRequest) error {
@@ -94,15 +97,17 @@ func (s *ThingServiceWithObserver) SaveThing(ctx context.Context, r SaveThingReq
 	ok, err := s.auth.ActionAuthorized(ctx, ThingWrite)
 	if err != nil {
 		s.observe.AuthError(ctx, r, err)
+		return ErrSystem
 	}
 	if !ok {
 		s.observe.Unauthorized(ctx, r)
-		return errors.Wrap(ErrClient, "unauthorized")
+		return ErrClientUnauthorized
 	}
 
 	// save
 	if err := s.store.Save(ctx, r.Thing); err != nil {
 		s.observe.SaveError(ctx, r, err)
+		return ErrSystem
 	}
 
 	// emit
@@ -111,9 +116,43 @@ func (s *ThingServiceWithObserver) SaveThing(ctx context.Context, r SaveThingReq
 
 }
 
+// ThingServiceWithObserver
+type ThingServiceWithTracer struct {
+	auth  Authorizer
+	store ThingPutter
+	trace Tracer
+}
+
 type Tracer interface {
 	Auth(ctx context.Context, fn func() error) error
 	Save(ctx context.Context, fn func() error) error
+}
+
+func (s *ThingServiceWithTracer) SaveThing(ctx context.Context, r SaveThingRequest) error {
+
+	// auth
+	var ok bool
+	err := s.trace.Auth(ctx, func() (err error) {
+		ok, err = s.auth.ActionAuthorized(ctx, ThingWrite)
+		return
+	})
+	if err != nil {
+		return ErrSystem
+	}
+	if !ok {
+		return ErrClientUnauthorized
+	}
+
+	// save
+	if s.trace.Save(ctx, func() error {
+		return s.store.Save(ctx, r.Thing)
+	}); err != nil {
+		return ErrSystem
+	}
+
+	// emit
+	return nil
+
 }
 
 type LogTracer struct{}
@@ -131,37 +170,4 @@ func (t *LogTracer) Save(ctx context.Context, thing Thing, fn func() error) erro
 	}
 	l.Info("things saved")
 	return nil
-}
-
-type ThingServiceWithTracer struct {
-	auth  Authorizer
-	store ThingPutter
-	trace Tracer
-}
-
-func (s *ThingServiceWithTracer) SaveThing(ctx context.Context, r SaveThingRequest) error {
-
-	// auth
-	var ok bool
-	err := s.trace.Auth(ctx, func() (err error) {
-		ok, err = s.auth.ActionAuthorized(ctx, ThingWrite)
-		return
-	})
-	if err != nil {
-		return ErrSystem
-	}
-	if !ok {
-		return errors.Wrap(ErrClient, "unauthorized")
-	}
-
-	// save
-	if s.trace.Save(ctx, func() error {
-		return s.store.Save(ctx, r.Thing)
-	}); err != nil {
-		return ErrSystem
-	}
-
-	// emit
-	return nil
-
 }

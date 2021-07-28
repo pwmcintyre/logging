@@ -22,7 +22,7 @@ Reference:
 - https://medium.com/@copyconstruct/logs-and-metrics-6d34d3026e38
 </aside>
 
----
+--
 
 ### Reality Check: metrics
 <!-- .slide: data-background="#468EAE" -->
@@ -31,13 +31,7 @@ Metrics is low-fidelity event aggregates
 
 Tells you IF failure; but not WHY failure
 
-<aside class="notes">
-1. take all your events
-2. throw away high-fidelity context (eg. user ID's)
-3. store just the number of events
-</aside>
-
----
+--
 
 ### Reality Check: tracing
 <!-- .slide: data-background="#468EAE" -->
@@ -51,7 +45,7 @@ You can DIY or SaaS:
 
 ---
 
-## Log Basics
+## Basics
 
 1. context
 2. correlation
@@ -75,7 +69,7 @@ You cannot predict future questions — be generous
 
 <span style="color:#46735E">__good logs__</span> are a consequence of <span style="color:#46735E">__good code__</span>
 
----
+--
 
 #### Example — serial architecture
 <!-- .slide: data-background="#33a" -->
@@ -86,23 +80,23 @@ queue service > validator service > sender service
 
 Q: who should log?
 
----
+--
 
 #### SOLID
 <!-- .slide: data-background="#33a" -->
 
 ```text
-service > queue
-service > validator
-service > sender
-service > log
+controller > queue
+controller > validator
+controller > sender
+controller > log
 ```
 
 Q: who should log?
 
 A: The controller
 
----
+--
 
 #### Inversion of control
 <!-- .slide: data-background="#33a" -->
@@ -113,7 +107,7 @@ work := queue.Pop()
 log = logger.WithField("work_id", item.ID)
 
 // validate
-if reason := s.validator.IsValid(work.Body); !reason != nil {
+if reason := s.validator.IsValid(work.Body); reason != nil {
     logger.WithField("reason", reason).Info("item invalid")
     return
 }
@@ -133,13 +127,13 @@ logger.Info("done")
 
 <small>* assume error handling!</small>
 
----
+--
 
 #### Single-responsibility principle
 <!-- .slide: data-background="#33a" -->
 
 ```go
-func Sender (i Item) {
+func Sender (i Item) error {
 
     // serialize
     body, err := json.Marshal(i)
@@ -165,16 +159,23 @@ func Sender (i Item) {
 
 <small>dont log AND throw (that's 2 things)</small>
 
----
+--
 
 ### Context in practice
 <!-- .slide: data-background="#33a" -->
 
 Code falls into 2 flavours:
-1. Business Logic  
+1. Controller  
     ```level=INFO```
-2. Plumbing  
+2. Everything else  
     ```level=DEBUG```
+
+--
+
+### Observer pattern
+<!-- .slide: data-background="#33a" -->
+
+`./go/service/main.go`
 
 ---
 
@@ -190,7 +191,7 @@ Code falls into 2 flavours:
 correlation_id / request_id / user_id / asset_id / ...
 ```
 
----
+--
 
 ### Correlation
 
@@ -227,12 +228,12 @@ func GetSystemContext(ctx context.Context) (val SystemContext, ok bool) {
 
 A broad category which is important to <span style="text-decoration:underline">collectively agree on</span>.
 
----
+--
 
 ### Common Mistakes
 <!-- .slide: data-background="#A62E2E" -->
 
----
+--
 
 #### non-ERROR
 <!-- .slide: data-background="#A62E2E" -->
@@ -243,7 +244,7 @@ A broad category which is important to <span style="text-decoration:underline">c
 
 This belongs in the response to the client; not in logs.
 
----
+--
 
 #### non-INFO
 <!-- .slide: data-background="#A62E2E" -->
@@ -254,7 +255,7 @@ Uninteresting plumbing
 
 > INFO: parsed JSON
 
----
+--
 
 #### predictions
 <!-- .slide: data-background="#A62E2E" -->
@@ -263,11 +264,11 @@ Predicting the future
 
 > INFO: about to handle request
 
----
+--
 
 ### Level Definitions
 
----
+--
 
 ### fatal
 <!-- .slide: data-background="#46735E" -->
@@ -276,7 +277,7 @@ The system cannot continue
 
 > FATAL: failed to connect to database
 
----
+--
 
 ### error
 <!-- .slide: data-background="#46735E" -->
@@ -285,7 +286,7 @@ A transient problem during processing
 
 > ERROR: timeout while saving
 
----
+--
 
 ### warning
 <!-- .slide: data-background="#46735E" -->
@@ -294,7 +295,7 @@ Processing degraded but can continue
 
 > WARN: config unset; using default
 
----
+--
 
 ### info
 <!-- .slide: data-background="#46735E" -->
@@ -305,7 +306,7 @@ System did what you asked it to do
 
 > INFO: cache refreshed
 
----
+--
 
 ### debug
 <!-- .slide: data-background="#46735E" -->
@@ -318,10 +319,6 @@ __Danger zone:__ Take care with sensitive data!
 
 ---
 
-### Observer pattern
-
----
-
 ## Closing
 
-- you'll get it wrong the first time; **iterate**
+you'll get it wrong the first time; **iterate**
