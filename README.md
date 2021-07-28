@@ -12,9 +12,9 @@ highlightTheme: "monokai"
 
 Pillars of Observability
 
-- Log 👈
-- Metric
-- Trace
+- Metric (coarse-grain)
+- Log (🤷)
+- Trace (fine-grain)
 
 <aside class="notes">
 Reference:
@@ -64,7 +64,13 @@ You cannot predict future questions
 ... consider data sensitivity; probably don't dump blobs
 </aside>
 
----
+--
+
+### Context examples
+
+example: `./examples.md`
+
+--
 
 ### Context in practice
 
@@ -180,7 +186,7 @@ Code falls into 2 flavours:
 ### Observer pattern
 <!-- .slide: data-background="#33a" -->
 
-`./go/service/main.go`
+example: `./go/service/main.go`
 
 <small>treat logs as an event emitting dependancy</small>
 
@@ -247,9 +253,10 @@ A broad category which is important to <span style="text-decoration:underline">c
 
 > ERROR: client is not authorized
 
-401 — a client error!
+This belongs in the response to the client:  
+`401 Unauthorized`  
 
-This belongs in the response to the client; not in logs.
+(or maybe an "access log")
 
 --
 
@@ -262,6 +269,8 @@ Uninteresting plumbing
 
 > INFO: parsed JSON
 
+<small>aka. i was prototyping and accidentally committed it</small>
+
 --
 
 #### predictions
@@ -270,6 +279,8 @@ Uninteresting plumbing
 Predicting the future
 
 > INFO: about to handle request
+
+<small>aka. i don't trust my language to trap exceptions</small>
 
 --
 
@@ -302,12 +313,16 @@ Processing degraded but can continue
 
 > WARN: config unset; using default
 
+<small>_opinion: use INFO_</small>
+
 --
 
 ### info
 <!-- .slide: data-background="#46735E" -->
 
 System did what you asked it to do
+
+> INFO: done
 
 > INFO: batch complete
 
