@@ -27,7 +27,7 @@ Reference:
 ### Reality Check: metrics
 <!-- .slide: data-background="#468EAE" -->
 
-Metrics is low-fidelity event aggregates
+Metrics are low-fidelity event aggregates
 
 Tells you IF failure; but not WHY failure
 
