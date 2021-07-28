@@ -7,14 +7,6 @@ highlightTheme: "monokai"
 
 ---
 
-## What is a log?
-
-> stream of aggregated, time-ordered events ... one event per line ...
-
-— https://12factor.net/logs
-
----
-
 ## Where do logs fit?
 <!-- .slide: data-background="#468EAE" -->
 
@@ -59,15 +51,19 @@ You can DIY or SaaS:
 
 ---
 
-## Logging Examples
+## Log Basics
 
-See ./examples.md
+1. context
+2. correlation
+3. level
 
 ---
 
 ## Context
 
-you cannot predict future questions: be generous
+Logs impose no limits on size* / cardinality
+
+You cannot predict future questions — be generous
 
 <aside class="notes">
 ... but consider data sensitivity
@@ -75,7 +71,116 @@ you cannot predict future questions: be generous
 
 ---
 
-### Context Identifiers
+### Context in practice
+
+<span style="color:#46735E">__good logs__</span> are a consequence of <span style="color:#46735E">__good code__</span>
+
+---
+
+#### Example — serial architecture
+<!-- .slide: data-background="#33a" -->
+
+```text
+queue service > validator service > sender service
+```
+
+Q: who should log?
+
+---
+
+#### SOLID
+<!-- .slide: data-background="#33a" -->
+
+```text
+service > queue
+service > validator
+service > sender
+service > log
+```
+
+Q: who should log?
+
+A: The controller
+
+---
+
+#### Inversion of control
+<!-- .slide: data-background="#33a" -->
+
+```go
+// get next
+work := queue.Pop()
+log = logger.WithField("work_id", item.ID)
+
+// validate
+if reason := s.validator.IsValid(work.Body); !reason != nil {
+    logger.WithField("reason", reason).Info("item invalid")
+    return
+}
+
+// send
+if err := s.sender.Send(work.Body); !err != nil {
+    logger.WithError(err).Error("failed to send item")
+    return
+}
+
+// commit work
+work.Delete()
+
+// emit
+logger.Info("done")
+```
+
+<small>* assume error handling!</small>
+
+---
+
+#### Single-responsibility principle
+<!-- .slide: data-background="#33a" -->
+
+```go
+func Sender (i Item) {
+
+    // serialize
+    body, err := json.Marshal(i)
+    if err != nil {
+        return errors.Wrap(err, "serialization failure")
+    }
+
+    // send
+    resp, err := http.Post(url, "application/json", bytes.NewBuffer(body))
+    if err != nil {
+        return errors.Wrap(err, "http failure")
+    }
+    defer res.Body.Close()
+
+    // check response
+    if response.StatusCode != http.StatusOK {
+        return fmt.Errorf("backend failure: %s", response.Status)
+    }
+
+    return nil
+}
+```
+
+<small>dont log AND throw (that's 2 things)</small>
+
+---
+
+### Context in practice
+<!-- .slide: data-background="#33a" -->
+
+Code falls into 2 flavours:
+1. Business Logic  
+    ```level=INFO```
+2. Plumbing  
+    ```level=DEBUG```
+
+---
+
+## Correlation
+
+... a cross-component concern
 
 👉 ***Concensus*** 👈
 
@@ -87,26 +192,34 @@ correlation_id / request_id / user_id / asset_id / ...
 
 ---
 
-### Context Dense
+### Correlation
 
-Log infrequently; with rich context
+reaching consensus through tooling
 
----
+```golang
+package appcontext
 
-### Common Mistakes
+type RequestContext struct { ... }
 
----
+type ClientContext struct { ... }
 
-#### Log-and-Throw
+type SystemContext struct {
+	Application string `json:"application,omitempty"`
+	Version     string `json:"version,omitempty"`
+	Environment string `json:"environment,omitempty"`
+}
 
-From low-level systems
+func WithSystemContext(ctx context.Context, val SystemContext) context.Context {
+	return context.WithValue(ctx, key, val)
+}
 
-```go
-log.Error("failed")
-return err
+func GetSystemContext(ctx context.Context) (val SystemContext, ok bool) {
+	val, ok = ctx.Value(key).(SystemContext)
+	return
+}
+
+...
 ```
-
-Breach of "Single-responsibility principle"
 
 ---
 
@@ -205,30 +318,10 @@ __Danger zone:__ Take care with sensitive data!
 
 ---
 
-## In practice (opinion)
-
-![classic setup](./img/plumbing.png)
-
-Code falls into 2 flavours:
-1. Business Logic
-2. Plumbing
-
-As such: only your service layer should log as "INFO"
-
----
-
 ### Observer pattern
 
 ---
 
-## TL;DR;
+## Closing
 
-- DONT : write stories over many lines
-- DO : emit discreet, context-rich events
-
----
-
-misc
-
-- you'll get it wrong the first time; iterate
-- single respo: dont log and throw
+- you'll get it wrong the first time; **iterate**
