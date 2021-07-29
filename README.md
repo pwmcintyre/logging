@@ -66,6 +66,22 @@ You cannot predict future questions
 
 --
 
+### Common Mistakes
+<!-- .slide: data-background="#A62E2E" -->
+
+--
+
+#### message overloading
+<!-- .slide: data-background="#A62E2E" -->
+
+> Task finished: CreateRoutes2: duration=3.014
+
+- hard to parse  
+- slow to filter (using `like` operation)  
+- ambiguous unit
+
+--
+
 ### Context examples
 
 example: `./examples.md`
