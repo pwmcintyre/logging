@@ -18,8 +18,20 @@ Pillars of Observability
 
 <aside class="notes">
 Reference:
+
 - https://www.oreilly.com/library/view/distributed-systems-observability/9781492033431/ch04.html
 - https://medium.com/@copyconstruct/logs-and-metrics-6d34d3026e38
+</aside>
+
+--
+
+### Reality Check: "pillars" are a marketing scam
+<!-- .slide: data-background="#468EAE" -->
+
+It's just emitting **data** to a **tool** with a variety of precision
+
+<aside class="notes">
+The tool often limits the precision you can include
 </aside>
 
 --
