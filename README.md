@@ -7,6 +7,8 @@ highlightTheme: "monokai"
 
 # Logging
 
+a non-exhaustive opinionated guide
+
 ---
 
 <!-- .slide: data-background="#005f73" -->
@@ -146,8 +148,10 @@ Do not add whole request/response payloads, these contain data which your observ
 
 #### message overloading
 
-```
-Task finished: ThingProcessor: duration=3.014
+```json
+{
+	"msg": "Task finished: ThingProcessor: duration=3.014"
+}
 ```
 
 - hard to parse  
