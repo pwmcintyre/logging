@@ -117,6 +117,25 @@ Do not add whole request/response payloads, these contain data which your observ
 
 --
 
+<!-- .slide: data-background="#0a9396" -->
+
+## Example
+
+```json
+{
+    "time": "2021-07-25T04:12:50Z",
+    "application": "authorizer@3.0.1",
+    "msg": "authorized",
+    "user_id": "123",
+    "groups": ["a", "b"],
+    "cache_used": "1627186370",
+    "request_id": "a39b28c9",
+    "corelation_id": "d4289bd7"
+}
+```
+
+--
+
 <!-- .slide: data-background="#A62E2E" -->
 
 ### Common Mistakes
@@ -231,15 +250,6 @@ func (s *Service) Process() (err error) {
 }
 ```
 
---
-
-### Observer pattern
-<!-- .slide: data-background="#33a" -->
-
-example: `./go/service/main.go`
-
-<small>treat logs as an event emitting dependancy</small>
-
 ---
 
 <!-- .slide: data-background="#94d2bd" -->
@@ -273,10 +283,6 @@ reaching consensus through tooling
 
 ```golang
 package appcontext
-
-type RequestContext struct { ... }
-
-type ClientContext struct { ... }
 
 type SystemContext struct {
 	Application string `json:"application,omitempty"`
