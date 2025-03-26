@@ -121,7 +121,7 @@ Do not add whole request/response payloads, these contain data which your observ
 
 <!-- .slide: data-background="#0a9396" -->
 
-## Example
+### Example
 
 ```json
 {
