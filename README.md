@@ -3,59 +3,97 @@ theme : "night"
 highlightTheme: "monokai"
 ---
 
+<!-- .slide: data-background="#001219" -->
+
 # Logging
+
+a non-exhaustive opinionated guide
 
 ---
 
-## Where do logs fit?
-<!-- .slide: data-background="#468EAE" -->
+<!-- .slide: data-background="#005f73" -->
 
-Pillars of Observability
+## Observability
 
-- Metric (coarse-grain)
-- Log (🤷)
-- Trace (fine-grain)
+Building predictable systems that you can  
+**reason about**
 
 <aside class="notes">
-Reference:
+In other words: Can you ask open ended questions about your system?
 
+For example:
+- Did the latest release impact performance?
+- Is there a correlation between system load and latency?
+- Why is kafka partition 2 so hot?
+</aside>
+
+--
+
+<!-- .slide: data-background="#005f73" -->
+
+## O11y 1.0 Pillars
+
+- **Metrics** — coarse-grain
+- **Logs** — complete freedom!
+- **Traces** — fine-grain
+
+<aside class="notes">
 - https://www.oreilly.com/library/view/distributed-systems-observability/9781492033431/ch04.html
 - https://medium.com/@copyconstruct/logs-and-metrics-6d34d3026e38
 </aside>
 
 --
 
-### Reality Check: "pillars" are a marketing scam
-<!-- .slide: data-background="#468EAE" -->
+<!-- .slide: data-background="#005f73" -->
 
-It's just emitting **data** to a **tool** with a variety of precision
+## Reality Check
+
+"Pillars" are marketing
+
+Emit **data** to **product** which can **query**.
 
 <aside class="notes">
-The tool often limits the precision you can include
+The product often limits the precision you can include.
+
+Metrics are low-fidelity aggregates, tells you of a failure but not why.
+
+Tracing is logging with opinions + tooling
+
+Multiple sources of truth suffer weak correlation
 </aside>
 
 --
 
-### Reality Check: metrics
-<!-- .slide: data-background="#468EAE" -->
+<!-- .slide: data-background="#005f73" -->
 
-Metrics are low-fidelity event aggregates
+## O11y 2.0
 
-Tells you IF failure; but not WHY failure
+**Canonical Logs:** Wide and structured
+
+1. Uncover unknown unknowns
+2. Useful to everyone
+
+<aside class="notes">
+Ask arbitrary questions
+Useful to product owners, support, develops, SRE's, Platform engineers, etc.
+
+- https://www.honeycomb.io/blog/why-honeycomb-black-swans-unknown-unknowns-and-the-glorious-future-of-doom
+- https://www.thoughtworks.com/en-au/radar/techniques/observability-2-0
+- https://thenewstack.io/modern-observability-is-a-single-braid-of-data/
+- https://baselime.io/blog/canonical-log-lines
+</aside>
 
 --
 
-### Reality Check: tracing
-<!-- .slide: data-background="#468EAE" -->
+<!-- .slide: data-background="#005f73" -->
 
-Tracing is logging with opinion + tooling
+### Actionable:
 
-You can DIY or SaaS:
-- AWS X-Ray
-- DataDog APM
-- honeycomb.io
+Focus on good logs
 
 ---
+
+<!-- .slide: data-background="#0a9396" -->
 
 ## Basics
 
@@ -65,28 +103,56 @@ You can DIY or SaaS:
 
 ---
 
-## Context
+<!-- .slide: data-background="#0a9396" -->
 
-You cannot predict future questions  
-— be generous
+## 1. Context
 
-<small>Logs impose no limits on size* / cardinality</small>
+Cannot predict future questions
+
+Add context ✅ not data ⚠️
 
 <aside class="notes">
-... consider data sensitivity; probably don't dump blobs
+In future you will want to explore the data in ways you cannot predict today.
+
+Do not add whole request/response payloads, these contain data which your observability tooling is not sancti
 </aside>
 
 --
 
-### Common Mistakes
-<!-- .slide: data-background="#A62E2E" -->
+<!-- .slide: data-background="#0a9396" -->
+
+### Example
+
+```json
+{
+    "time": "2021-07-25T04:12:50Z",
+    "application": "authorizer@3.0.1",
+    "msg": "authorized",
+    "user_id": "123",
+    "groups": ["a", "b"],
+    "cache_used": "1627186370",
+    "request_id": "a39b28c9",
+    "corelation_id": "d4289bd7"
+}
+```
 
 --
 
-#### message overloading
 <!-- .slide: data-background="#A62E2E" -->
 
-> Task finished: CreateRoutes2: duration=3.014
+### Common Mistakes
+
+--
+
+<!-- .slide: data-background="#A62E2E" -->
+
+#### message overloading
+
+```json
+{
+	"msg": "Task finished: ThingProcessor: duration=3.014"
+}
+```
 
 - hard to parse  
 - slow to filter (using `like` operation)  
@@ -94,160 +160,137 @@ You cannot predict future questions
 
 --
 
-### Context examples
+<!-- .slide: data-background="#0a9396" -->
 
-example: `./examples.md`
+#### message overloading fixed
 
---
-
-### Context in practice
-
-<span style="color:#46735E">__good logs__</span> are a consequence of <span style="color:#46735E">__good code__</span>
-
---
-
-#### Example — pipe architecture
-<!-- .slide: data-background="#33a" -->
-
-```text
-queue service > validator service > sender service
+```json
+{
+	"msg": "Task finished",
+	"processor": "ThingProcessor",
+	"duration_ms": 3.014
+}
 ```
 
-Q: who should log?
+--
 
-<small>new problem; how to pass context + correlation?</small>
+<!-- .slide: data-background="#e9d8a6" -->
+
+## Architecture
 
 --
 
-#### SOLID
-<!-- .slide: data-background="#33a" -->
+<!-- .slide: data-background="#e9d8a6" -->
 
-```text
-controller > queue
-controller > validator
-controller > sender
-controller > log
+### Pipe architecture
+
+Q: Which service should log?
+
+```mermaid
+graph TD;
+	queue --> validator;
+	validator --> sender;
 ```
 
-Q: who should log?
-
-A: The controller
-
-<small>everything else performs a discrete function</small>
+<aside class="notes">
+Each service might need to, but how to pass context + correlation?
+</aside>
 
 --
 
-#### Inversion of control
-<!-- .slide: data-background="#33a" -->
+<!-- .slide: data-background="#e9d8a6" -->
+
+### Controller
+
+```mermaid
+graph TD;
+	controller <--> queue;
+	controller <--> validator;
+	controller <--> sender;
+```
+
+The controller handles flow, errors, and logging.
+
+--
+
+<!-- .slide: data-background="#e9d8a6" -->
+
+#### Canonical Example
 
 ```go
-// get next
-work := queue.Pop()
-log = logger.WithField("work_id", item.ID)
+func (s *Service) Process() (err error) {
+	// prepare log context
+	start := time.Now()
+	log := StandardLogger.WithField("service", "controller")
+	defer func() {
+		if err != nil {
+			log = log.WithError(err)
+		}
+		duration := time.Since(start)
+		log.WithField("duration_ms", duration.Milliseconds()).
+			Info("done")
+	}()
 
-// validate
-if reason := s.validator.IsValid(work.Body); reason != nil {
-    logger.WithField("reason", reason).Info("item invalid")
-    return
-}
+	// get next work
+	var work Work
+	work, err = queue.Pop()
+	if err != nil {
+		return fmt.Errorf("failed to get work: %w", err)
+	}
+	log = log.WithField("work_id", item.ID)
 
-// send
-if err := s.sender.Send(work.Body); !err != nil {
-    logger.WithError(err).Error("failed to send item")
-    return
-}
+	// validate
+	if err = s.validator.IsValid(work.Body); err != nil {
+		return fmt.Errorf("invalid work: %w", err)
+	}
 
-// commit work
-work.Delete()
+	// send
+	if err = s.sender.Send(work.Body); !err != nil {
+		return fmt.Errorf("failed to send: %w", err)
+	}
 
-// emit
-logger.Info("done")
-```
-
-<small>* assume error handling!</small>
-
---
-
-#### Single-responsibility principle
-<!-- .slide: data-background="#33a" -->
-
-```go
-func Sender (i Item) error {
-
-    // serialize
-    body, err := json.Marshal(i)
-    if err != nil {
-        return errors.Wrap(err, "serialization failure")
-    }
-
-    // send
-    resp, err := http.Post(url, "application/json", bytes.NewBuffer(body))
-    if err != nil {
-        return errors.Wrap(err, "http failure")
-    }
-    defer res.Body.Close()
-
-    // check response
-    if response.StatusCode != http.StatusOK {
-        return fmt.Errorf("backend failure: %s", response.Status)
-    }
-
-    return nil
+	// commit work
+	work.Delete()
 }
 ```
-
-<small>dont log AND throw (that's 2 things)</small>
-
---
-
-### Context in practice
-<!-- .slide: data-background="#33a" -->
-
-Code falls into 2 flavours:
-1. Controller  
-    ```level=INFO```
-2. Everything else  
-    ```level=DEBUG```
-
---
-
-### Observer pattern
-<!-- .slide: data-background="#33a" -->
-
-example: `./go/service/main.go`
-
-<small>treat logs as an event emitting dependancy</small>
 
 ---
 
-## Correlation
+<!-- .slide: data-background="#94d2bd" -->
 
-... a cross-component concern
+## 2. Correlation
 
-👉 ***Concensus*** 👈
-
-☝
-
-```text
-correlation_id / request_id / user_id / asset_id / ...
-```
+a cross-component concern — find concensus
 
 --
 
-### Correlation
+<!-- .slide: data-background="#94d2bd" -->
+
+Examples
+
+- event context:  
+  ```correlation_id, request_id```
+
+- business context:  
+  ```user_id, asset_id```
+
+- application context:  
+  ```application, version, environment```
+
+--
+
+<!-- .slide: data-background="#94d2bd" -->
+
+### Tooling
 
 reaching consensus through tooling
 
 ```golang
 package appcontext
 
-type RequestContext struct { ... }
-
-type ClientContext struct { ... }
-
 type SystemContext struct {
 	Application string `json:"application,omitempty"`
-	Version     string `json:"version,omitempty"`
+	Version	 string `json:"version,omitempty"`
 	Environment string `json:"environment,omitempty"`
 }
 
@@ -265,31 +308,86 @@ func GetSystemContext(ctx context.Context) (val SystemContext, ok bool) {
 
 ---
 
-## Levels
+<!-- .slide: data-background="#005f73" -->
 
-A broad category which is important to <span style="text-decoration:underline">collectively agree on</span>.
+## 3. Levels
+
+Broadly categorize an event
+
+Reach consensus on meaning
 
 --
+
+<!-- .slide: data-background="#46735E" -->
+
+### Level Definitions
+
+--
+
+<!-- .slide: data-background="#46735E" -->
+
+**fatal:** The system cannot continue
+
+> FATAL: failed to connect to database
+
+--
+
+<!-- .slide: data-background="#46735E" -->
+
+**error:** Failed to do the job
+
+> ERROR: timeout while saving
+
+--
+
+<!-- .slide: data-background="#46735E" -->
+
+**warning:** Processing degraded but can continue
+
+> WARN: config unset; using default
+
+--
+
+<!-- .slide: data-background="#46735E" -->
+
+**info:** System did what you asked it to do
+
+> INFO: user created
+
+> INFO: batch complete
+
+--
+
+<!-- .slide: data-background="#46735E" -->
+
+**debug:** Low-level supporting steps.  
+
+Usually disabled due to poor signal-to-noise ratio.  
+
+__Danger zone:__ Take care with sensitive data!
+
+--
+
+<!-- .slide: data-background="#A62E2E" -->
 
 ### Common Mistakes
-<!-- .slide: data-background="#A62E2E" -->
 
 --
 
-#### non-ERROR
 <!-- .slide: data-background="#A62E2E" -->
+
+#### non-ERROR
 
 > ERROR: client is not authorized
 
 This belongs in the response to the client:  
 `401 Unauthorized`  
 
-(or maybe an "access log")
-
 --
 
-#### non-INFO
 <!-- .slide: data-background="#A62E2E" -->
+
+#### non-INFO
 
 Uninteresting plumbing
 
@@ -301,73 +399,19 @@ Uninteresting plumbing
 
 --
 
-#### predictions
 <!-- .slide: data-background="#A62E2E" -->
+
+#### predictions
 
 Predicting the future
 
 > INFO: about to handle request
 
-<small>aka. i don't trust my language to trap exceptions</small>
-
---
-
-### Level Definitions
-
---
-
-### fatal
-<!-- .slide: data-background="#46735E" -->
-
-The system cannot continue
-
-> FATAL: failed to connect to database
-
---
-
-### error
-<!-- .slide: data-background="#46735E" -->
-
-A transient problem during processing
-
-> ERROR: timeout while saving
-
---
-
-### warning
-<!-- .slide: data-background="#46735E" -->
-
-Processing degraded but can continue
-
-> WARN: config unset; using default
-
-<small>_opinion: use INFO_</small>
-
---
-
-### info
-<!-- .slide: data-background="#46735E" -->
-
-System did what you asked it to do
-
-> INFO: done
-
-> INFO: batch complete
-
-> INFO: cache refreshed
-
---
-
-### debug
-<!-- .slide: data-background="#46735E" -->
-
-Low-level supporting steps.  
-
-Usually disabled due to poor signal-to-noise ratio.  
-
-__Danger zone:__ Take care with sensitive data!
+Trust your error handling!
 
 ---
+
+<!-- .slide: data-background="#001219" -->
 
 ## Closing
 
